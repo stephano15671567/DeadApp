@@ -16,7 +16,7 @@ export class Boveda {
     public fechaCreacion: Date,
     public fechaActualizacion: Date,
     public estado: EstadoBoveda = EstadoBoveda.ACTIVA,
-    private _activos: ActivoDigital[] = [] // ?? FIX: Inicializar la lista como array vacío
+    private _activos: ActivoDigital[] = [] // ?? FIX: Inicializar la lista como array vacï¿½o
   ) {}
 
   get activos(): ActivoDigital[] {
@@ -29,25 +29,30 @@ export class Boveda {
     this.fechaActualizacion = new Date();
   }
 
-  // Método estático para simplificar la creación inicial
+  eliminarActivo(activoId: string): void {
+    this._activos = this._activos.filter(a => a.id.value !== activoId);
+    this.fechaActualizacion = new Date();
+  }
+
+  // Mï¿½todo estï¿½tico para simplificar la creaciï¿½n inicial
   static createNew(usuarioId: string): Boveda {
     const ahora = new Date();
     return new Boveda(
       new Uuid(),
       usuarioId,
-      'Bóveda Principal de Legado', 
+      'Bï¿½veda Principal de Legado', 
       'Contenedor de todos los activos digitales del usuario.', 
       'CLAVE_MAESTRA_DEFAULT', 
       ahora,
       ahora,
       EstadoBoveda.ACTIVA,
-      [] // ?? Pasar el array vacío explícitamente para la primera creación
+      [] // ?? Pasar el array vacï¿½o explï¿½citamente para la primera creaciï¿½n
     );
   }
 
   liberar(): void {
     if (this.estado === EstadoBoveda.LIBERADA) {
-      throw new Error('La bóveda ya está liberada.');
+      throw new Error('La bï¿½veda ya estï¿½ liberada.');
     }
     this.estado = EstadoBoveda.LIBERADA;
   }

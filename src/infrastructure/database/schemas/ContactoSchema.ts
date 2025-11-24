@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-export interface IContactoDoc extends Document {
+export interface IContactoDoc {
   _id: string;
   usuarioId: string;
   nombre: string;

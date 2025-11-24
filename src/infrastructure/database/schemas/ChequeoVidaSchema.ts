@@ -1,11 +1,11 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-export interface IChequeoVidaDoc extends Document {
+export interface IChequeoVidaDoc {
   _id: string;
   usuarioId: string;
   frecuencia: string;
   ultimaSenal: Date;
-  siguienteChequeo: Date; // <--- CAMPO CRÍTICO AÑADIDO
+  siguienteChequeo: Date; // <--- CAMPO CRÃTICO AÃ‘ADIDO
   estado: string;
 }
 

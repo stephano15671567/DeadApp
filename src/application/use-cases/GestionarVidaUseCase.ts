@@ -3,10 +3,10 @@ import { BovedaRepository } from '../../domain/ports/out/BovedaRepository';
 import { ContactoRepository } from '../../domain/ports/out/ContactoRepository';
 import { EmailService } from '../../domain/ports/out/EmailService';
 import { ChequeoVida, EstadoChequeo } from '../../domain/entities/ChequeoVida';
-import { FrecuenciaChequeo, FrecuenciaFactory } from '../../domain/strategies/FrecuenciaStrategies'; // <--- FIX CRÍTICO: Importar Factory
+import { FrecuenciaChequeo, FrecuenciaFactory } from '../../domain/strategies/FrecuenciaStrategies'; // <--- FIX CRï¿½TICO: Importar Factory
 import { Uuid } from '../../domain/value-objects/Uuid';
 
-// Asumimos que calcularSiguienteChequeo y DarSenalVidaDto están disponibles si el código anterior existe
+// Asumimos que calcularSiguienteChequeo y DarSenalVidaDto estï¿½n disponibles si el cï¿½digo anterior existe
 export interface DarSenalVidaDto {
   frecuencia?: FrecuenciaChequeo;
 }
@@ -28,14 +28,17 @@ export class GestionarVidaUseCase {
     private readonly emailService: EmailService
   ) {}
 
-  // 1. DAR SEÑAL DE VIDA (Ping)
+  // 1. DAR SEÃ‘AL DE VIDA (Ping)
   async darSenalDeVida(usuarioId: string, { frecuencia }: DarSenalVidaDto): Promise<ChequeoVida> {
     const chequeo = await this.chequeoVidaRepo.buscarPorUsuarioId(usuarioId); 
-    // ... (resto del código del ping) ...
+    // ... (resto del cÃ³digo del ping) ...
+    if (!chequeo) {
+      throw new Error('Chequeo de vida no encontrado');
+    }
     return chequeo;
   }
 
-  // 2. VERIFICAR USUARIOS (El método que ejecuta el Cron Job)
+  // 2. VERIFICAR USUARIOS (El mï¿½todo que ejecuta el Cron Job)
   async verificarUsuarios(): Promise<void> {
     console.log(`[CRON] Verificando estado de vida de todos los usuarios...`);
 
@@ -43,12 +46,12 @@ export class GestionarVidaUseCase {
     const ahora = new Date();
 
     for (const chequeo of chequeosActivos) {
-        const estrategia = FrecuenciaFactory.obtenerEstrategia(chequeo.frecuencia); // ?? ESTA LÍNEA AHORA FUNCIONARÁ
+        const estrategia = FrecuenciaFactory.obtenerEstrategia(chequeo.frecuencia); // ?? ESTA Lï¿½NEA AHORA FUNCIONARï¿½
         const fechaLimite = estrategia.calcularFechaLimite(chequeo.ultimaSenal);
 
         if (ahora > fechaLimite && chequeo.estado !== EstadoChequeo.FALLIDO) {
             
-            console.warn(`[CRON ALERTA] Usuario ${chequeo.usuarioId} ha fallado el Chequeo de Vida. Límite: ${fechaLimite.toISOString()}`);
+            console.warn(`[CRON ALERTA] Usuario ${chequeo.usuarioId} ha fallado el Chequeo de Vida. Lï¿½mite: ${fechaLimite.toISOString()}`);
             
             chequeo.verificarEstado();
             await this.chequeoVidaRepo.guardar(chequeo);
@@ -56,13 +59,13 @@ export class GestionarVidaUseCase {
             await this.ejecutarLiberacionLegado(chequeo.usuarioId);
 
         } else if (chequeo.estado === EstadoChequeo.FALLIDO) {
-            console.log(`[CRON INFO] Usuario ${chequeo.usuarioId} sigue en estado FALLIDO. Notificación ya enviada.`);
+            console.log(`[CRON INFO] Usuario ${chequeo.usuarioId} sigue en estado FALLIDO. Notificaciï¿½n ya enviada.`);
         }
     }
-    console.log(`[CRON] Verificación finalizada.`);
+    console.log(`[CRON] Verificaciï¿½n finalizada.`);
   }
 
-  // Método auxiliar que contiene la lógica de liberación
+  // Mï¿½todo auxiliar que contiene la lï¿½gica de liberaciï¿½n
   private async ejecutarLiberacionLegado(usuarioId: string): Promise<void> {
     console.log(`[LIBERACION] Iniciando protocolo para usuario: ${usuarioId}`);
 
@@ -73,14 +76,14 @@ export class GestionarVidaUseCase {
         if (boveda.estado !== 'LIBERADA') {
           boveda.liberar(); 
           await this.bovedaRepo.guardar(boveda); 
-          console.log(`[LIBERACION] Bóveda ${boveda.id.value} cambiada a estado LIBERADA.`);
+          console.log(`[LIBERACION] Bï¿½veda ${boveda.id.value} cambiada a estado LIBERADA.`);
         }
       }
 
       const contactos = await this.contactoRepo.listarPorUsuarioId(usuarioId);
 
       if (contactos.length === 0) {
-        console.warn(`[LIBERACION WARNING] No se encontraron contactos clave para el usuario ${usuarioId}. Bóveda liberada, pero sin notificaciones.`);
+        console.warn(`[LIBERACION WARNING] No se encontraron contactos clave para el usuario ${usuarioId}. Bï¿½veda liberada, pero sin notificaciones.`);
         return;
       }
 
@@ -96,7 +99,7 @@ export class GestionarVidaUseCase {
       console.log(`[LIBERACION] Protocolo completado exitosamente para el usuario ${usuarioId}.`);
 
     } catch (error) {
-      console.error(`[LIBERACION ERROR] Fallo crítico al liberar legado para ${usuarioId}:`, error);
+      console.error(`[LIBERACION ERROR] Fallo crï¿½tico al liberar legado para ${usuarioId}:`, error);
     }
   }
 }

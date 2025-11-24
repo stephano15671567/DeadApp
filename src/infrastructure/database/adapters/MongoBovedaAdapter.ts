@@ -1,7 +1,7 @@
 import { BovedaRepository } from '../../../domain/ports/out/BovedaRepository';
 import { Boveda, EstadoBoveda } from '../../../domain/entities/Boveda';
 import { ActivoDigital } from '../../../domain/entities/ActivoDigital';
-import { BovedaModel, IActivoDigitalDoc } from '../schemas/BovedaSchema';
+import { BovedaModel } from '../schemas/BovedaSchema';
 import { Uuid } from '../../../domain/value-objects/Uuid';
 
 export class MongoBovedaAdapter implements BovedaRepository {
@@ -10,31 +10,50 @@ export class MongoBovedaAdapter implements BovedaRepository {
   private mapActivos(activos: any[]): ActivoDigital[] {
     return activos.map(a => new ActivoDigital(
         new Uuid(a._id),
-        a.usuarioId,
-        'Nombre Ficticio', 'Usuario Ficticio', 'Clave Ficticia',
-        'Notas Ficticias', 'OTRO', false, new Date() 
+        a.plataforma || 'Desconocido',
+        a.usuarioCuenta || 'Desconocido',
+        a.passwordCifrada || '',
+        a.notas || '',
+        a.categoria || 'OTRO',
+        a.gestionado || false,
+        a.fechaGestionado
     ));
   }
 
   private mapToEntity(doc: any): Boveda {
-    // Reconstruye la CLASE Boveda con todos sus métodos.
-    return new Boveda(
+    // Reconstruye la CLASE Boveda con todos sus mÃ©todos.
+    const boveda = new Boveda(
       new Uuid(doc._id),
       doc.usuarioId,
-      doc.nombre || 'Bóveda Principal',
-      doc.descripcion || 'Bóveda Personal',
+      doc.nombre || 'BÃ³veda Principal',
+      doc.descripcion || 'BÃ³veda Personal',
       doc.clave || 'CLAVE',
       doc.fechaCreacion || new Date(),
       doc.fechaActualizacion || new Date(),
-      doc.estado as EstadoBoveda
+      doc.estado as EstadoBoveda,
+      []
     );
+    
+    // Agregar activos si existen
+    if (doc.activos && Array.isArray(doc.activos)) {
+      const activos = this.mapActivos(doc.activos);
+      activos.forEach(activo => boveda.agregarActivo(activo));
+    }
+    
+    return boveda;
   }
   
-  // 3. MÉTODO GUARDAR (Write)
+  // 3. MÃ‰TODO GUARDAR (Write)
   async guardar(boveda: Boveda): Promise<void> {
     const activosDoc = boveda.activos.map(a => ({
       _id: a.id.value,
-      // ... otros campos
+      plataforma: a.plataforma,
+      usuarioCuenta: a.usuarioCuenta,
+      passwordCifrada: a.passwordCifrada,
+      notas: a.notas,
+      categoria: a.categoria,
+      gestionado: a.gestionado,
+      fechaGestionado: a.fechaGestionado
     }));
 
     await BovedaModel.findOneAndUpdate(
@@ -59,10 +78,10 @@ export class MongoBovedaAdapter implements BovedaRepository {
     return this.mapToEntity(doc);
   }
 
-  // ?? FIX: IMPLEMENTACIÓN DEL MÉTODO QUE FALTABA
+  // ?? FIX: IMPLEMENTACIï¿½N DEL Mï¿½TODO QUE FALTABA
   async listarPorUsuarioId(usuarioId: string): Promise<Boveda[]> {
     const docs = await BovedaModel.find({ usuarioId });
-    // Dado que sólo hay una bóveda por usuario, devuelve un array con ella
+    // Dado que sï¿½lo hay una bï¿½veda por usuario, devuelve un array con ella
     return docs.map(doc => this.mapToEntity(doc));
   }
 }

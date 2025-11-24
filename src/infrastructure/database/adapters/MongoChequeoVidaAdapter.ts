@@ -1,34 +1,38 @@
 import { ChequeoVidaRepository } from '../../../domain/ports/out/ChequeoVidaRepository';
 import { ChequeoVida, EstadoChequeo } from '../../../domain/entities/ChequeoVida';
-import { FrecuenciaChequeo } from '../../../domain/strategies/FrecuenciaStrategies';
+import { FrecuenciaChequeo, FrecuenciaFactory } from '../../../domain/strategies/FrecuenciaStrategies';
 import { ChequeoVidaModel } from '../schemas/ChequeoVidaSchema';
 import { Uuid } from '../../../domain/value-objects/Uuid';
 
 export class MongoChequeoVidaAdapter implements ChequeoVidaRepository {
   
-  // 1. Método Guardar (Persistencia)
+  // 1. MÃ©todo Guardar (Persistencia)
   async guardar(chequeo: ChequeoVida): Promise<void> {
+    // Calcular siguienteChequeo usando la estrategia
+    const estrategia = FrecuenciaFactory.obtenerEstrategia(chequeo.frecuencia);
+    const siguienteChequeo = estrategia.calcularFechaLimite(chequeo.ultimaSenal);
+    
     await ChequeoVidaModel.findOneAndUpdate(
       { _id: chequeo.id.value },
       {
         usuarioId: chequeo.usuarioId,
         frecuencia: chequeo.frecuencia,
         ultimaSenal: chequeo.ultimaSenal,
-        siguienteChequeo: chequeo.siguienteChequeo, 
+        siguienteChequeo: siguienteChequeo, 
         estado: chequeo.estado
       },
       { upsert: true, new: true }
     );
   }
 
-  // 2. Método Buscar por ID (Usado en Ping)
+  // 2. Mï¿½todo Buscar por ID (Usado en Ping)
   async buscarPorUsuarioId(usuarioId: string): Promise<ChequeoVida | null> {
     const doc = await ChequeoVidaModel.findOne({ usuarioId });
     if (!doc) return null;
     return this.mapToEntity(doc);
   }
 
-  // ?? 3. MÉTODO CRÍTICO PARA EL CRON JOB (Fix del TypeError)
+  // ?? 3. Mï¿½TODO CRï¿½TICO PARA EL CRON JOB (Fix del TypeError)
   async buscarTodos(): Promise<ChequeoVida[]> {
     // Retorna todos los documentos (sin filtro, tal como el Cron lo necesita)
     const docs = await ChequeoVidaModel.find({}); 
@@ -42,7 +46,6 @@ export class MongoChequeoVidaAdapter implements ChequeoVidaRepository {
       doc.usuarioId,
       doc.frecuencia as FrecuenciaChequeo,
       doc.ultimaSenal,
-      doc.siguienteChequeo,
       doc.estado as EstadoChequeo
     );
   }

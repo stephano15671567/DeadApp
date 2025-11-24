@@ -7,21 +7,20 @@ import { Uuid } from '../../domain/value-objects/Uuid';
 export class GestionarBovedaUseCase {
   constructor(private readonly bovedaRepository: BovedaRepository) {}
 
-  // 1. CREAR (Ahora usa el método estático para evitar fallos de constructor)
+  // 1. CREAR (Ahora usa el mï¿½todo estï¿½tico para evitar fallos de constructor)
   async agregarActivo(usuarioId: string, datos: AgregarActivoDto): Promise<void> {
     let boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
 
     if (!boveda) {
-      // FIX CRÍTICO: Usar el método estático para crear la Bóveda con defaults
+      // FIX CRï¿½TICO: Usar el mï¿½todo estï¿½tico para crear la Bï¿½veda con defaults
       boveda = Boveda.createNew(usuarioId); 
     }
-    // ... (El resto del código de creación de Activo Digital) ...
+    // ... (El resto del cï¿½digo de creaciï¿½n de Activo Digital) ...
     
     const passwordCifrada = `[CIFRADO]_${datos.password}`; 
 
     const nuevoActivo = new ActivoDigital(
       new Uuid(),
-      usuarioId,
       datos.plataforma,
       datos.usuarioCuenta,
       passwordCifrada,
@@ -33,7 +32,7 @@ export class GestionarBovedaUseCase {
     await this.bovedaRepository.guardar(boveda);
   }
 
-  // ... (otros métodos que no causan el crash) ...
+  // ... (otros mï¿½todos que no causan el crash) ...
   async obtenerActivos(usuarioId: string): Promise<ActivoDigital[]> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) return [];
