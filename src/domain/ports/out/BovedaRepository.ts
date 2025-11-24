@@ -3,5 +3,6 @@ import { Boveda } from '../../entities/Boveda';
 export interface BovedaRepository {
   guardar(boveda: Boveda): Promise<void>;
   buscarPorUsuarioId(usuarioId: string): Promise<Boveda | null>;
-  // buscarPorId(id: string): Promise<Boveda | null>; // Opcional por ahora
+  // ?? FIX: Método que el Cron Job y Use Case están buscando
+  listarPorUsuarioId(usuarioId: string): Promise<Boveda[]>; 
 }

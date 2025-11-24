@@ -1,21 +1,38 @@
 import cron from 'node-cron';
 import { GestionarVidaUseCase } from '../../application/use-cases/GestionarVidaUseCase';
 import { MongoChequeoVidaAdapter } from '../database/adapters/MongoChequeoVidaAdapter';
+import { MongoBovedaAdapter } from '../database/adapters/MongoBovedaAdapter';
+import { MongoContactoAdapter } from '../database/adapters/MongoContactoAdapter';
+import { MockEmailAdapter } from '../adapters/external/MockEmailAdapter';
+
+// Repositorios e Infraestructura
+const chequeoVidaRepo = new MongoChequeoVidaAdapter();
+const bovedaRepo = new MongoBovedaAdapter(); 
+const contactoRepo = new MongoContactoAdapter();
+const emailService = new MockEmailAdapter();
+
+// Caso de Uso (InyecciÛn de Dependencias)
+const gestionarVidaUseCase = new GestionarVidaUseCase(
+    chequeoVidaRepo, 
+    bovedaRepo, // Boveda Repository (Nuevo)
+    contactoRepo, // Contacto Repository (Nuevo)
+    emailService // Email Service (Nuevo)
+);
 
 export const initLifeCheckJob = () => {
-  const repo = new MongoChequeoVidaAdapter();
-  const useCase = new GestionarVidaUseCase(repo);
+    // DefiniciÛn del Cron Job (corre cada minuto para depuraciÛn)
+    const lifeCheckJob = cron.schedule('* * * * *', async () => {
+        console.log('? CronJob disparado: Verificando vida de usuarios...');
+        try {
+            await gestionarVidaUseCase.verificarUsuarios();
+        } catch (error) {
+            console.error('? Error en CronJob:', error);
+        }
+    }, {
+        scheduled: true, 
+        timezone: "America/Santiago" 
+    });
 
-  // Programar: Todos los d√≠as a las 00:00 (Midnight)
-  // Formato Cron: segundo(opc) minuto hora dia mes dia-semana
-  cron.schedule('0 0 * * *', async () => {
-    console.log('‚è∞ CronJob disparado: Verificando vida de usuarios...');
-    try {
-      await useCase.verificarUsuarios();
-    } catch (error) {
-      console.error('‚ùå Error en CronJob:', error);
-    }
-  });
-
-  console.log('üìÖ Job de Chequeo de Vida programado (00:00 diario).');
+    console.log('?? Job de Chequeo de Vida programado (Corre cada minuto para pruebas).');
+    return lifeCheckJob;
 };

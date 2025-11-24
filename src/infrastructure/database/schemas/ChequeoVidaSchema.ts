@@ -5,6 +5,7 @@ export interface IChequeoVidaDoc extends Document {
   usuarioId: string;
   frecuencia: string;
   ultimaSenal: Date;
+  siguienteChequeo: Date; // <--- CAMPO CRÍTICO AÑADIDO
   estado: string;
 }
 
@@ -13,6 +14,7 @@ const ChequeoVidaSchema: Schema = new Schema({
   usuarioId: { type: String, required: true, unique: true },
   frecuencia: { type: String, required: true },
   ultimaSenal: { type: Date, default: Date.now },
+  siguienteChequeo: { type: Date, required: true }, // <--- AHORA REQUERIDO
   estado: { type: String, default: 'PENDIENTE' }
 });
 
