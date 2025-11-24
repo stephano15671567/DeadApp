@@ -33,16 +33,23 @@ const enableDev = process.env.ENABLE_DEV_ENDPOINTS === 'true';
 const devSecret = process.env.DEV_ENDPOINTS_SECRET || '';
 
 function requireDevSecret(req: any, res: any, next: any) {
-  if (devSecret) {
-    const header = (req.headers['x-dev-secret'] || req.headers['X-Dev-Secret'] || req.headers['x-dev-Secret']) as string | undefined;
-    if (!header || header !== devSecret) {
-      return res.status(401).json({ error: 'UNAUTHORIZED_DEV_ENDPOINT' });
-    }
+  const header = (req.headers['x-dev-secret'] || req.headers['X-Dev-Secret'] || req.headers['x-dev-Secret']) as string | undefined;
+  if (!devSecret) {
+    // If no dev secret is configured, refuse access — safer than allowing open dev endpoints.
+    return res.status(401).json({ error: 'DEV_ENDPOINTS_DISABLED' });
+  }
+  if (!header || header !== devSecret) {
+    return res.status(401).json({ error: 'UNAUTHORIZED_DEV_ENDPOINT' });
   }
   return next();
 }
 
 if (enableDev) {
+  if (!devSecret) {
+    console.warn('WARNING: ENABLE_DEV_ENDPOINTS is true but DEV_ENDPOINTS_SECRET is not set. Dev endpoints will NOT be registered.');
+  } else if (process.env.NODE_ENV === 'production') {
+    console.warn('WARNING: Dev endpoints are disabled in production environment. Set NODE_ENV to development for local testing.');
+  } else {
   app.post('/__dev/add-activo', requireDevSecret, async (req, res) => {
     try {
       const repo = new MongoBovedaAdapter();
