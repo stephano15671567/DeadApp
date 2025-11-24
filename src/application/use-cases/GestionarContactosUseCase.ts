@@ -42,7 +42,16 @@ export class GestionarContactosUseCase {
   }
 
   async eliminarContacto(usuarioId: string, id: string): Promise<void> {
-    // Aquí podrías validar que el contacto pertenezca al usuario antes de borrar
+    // Validar que el contacto pertenezca al usuario antes de borrar
+    const contacto = await this.contactoRepo.buscarPorId(id);
+    if (!contacto) {
+      throw new Error('CONTACTO_NOT_FOUND');
+    }
+    
+    if (contacto.usuarioId !== usuarioId) {
+      throw new Error('CONTACTO_NOT_OWNED');
+    }
+    
     await this.contactoRepo.eliminar(id);
   }
 

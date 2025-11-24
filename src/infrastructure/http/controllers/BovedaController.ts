@@ -13,7 +13,13 @@ const getUserId = (req: Request): string | undefined => {
 export const agregarActivoController = async (req: Request, res: Response) => {
   try {
     const usuarioId = getUserId(req);
-    if (!usuarioId) return res.status(401).json({ error: 'Token inv�lido: No se encontr� ID de usuario' });
+    if (!usuarioId) return res.status(401).json({ error: 'Token inválido: No se encontró ID de usuario' });
+
+    // Validar campos requeridos
+    const { plataforma, usuarioCuenta, password } = req.body;
+    if (!plataforma || !usuarioCuenta || !password) {
+      return res.status(400).json({ error: 'Los campos plataforma, usuarioCuenta y password son requeridos' });
+    }
 
     await gestionarBovedaUseCase.agregarActivo(usuarioId, req.body);
     res.status(201).json({ message: 'Activo digital guardado exitosamente' });

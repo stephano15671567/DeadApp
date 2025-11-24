@@ -14,11 +14,17 @@ export const crearContactoController = async (req: Request, res: Response) => {
     const usuarioId = getUserId(req);
     if (!usuarioId) return res.status(401).json({ error: 'No autorizado' });
 
+    // Validar campos requeridos
+    const { nombre, email, telefono } = req.body;
+    if (!nombre || !email || !telefono) {
+      return res.status(400).json({ error: 'Los campos nombre, email y telefono son requeridos' });
+    }
+
     await useCase.agregarContacto(usuarioId, req.body);
     res.status(201).json({ message: 'Contacto agregado' });
   } catch (error: any) {
     if (error.message === 'MAX_CONTACTOS_REACHED') {
-      return res.status(400).json({ error: 'Has alcanzado el l�mite de 5 contactos.' });
+      return res.status(400).json({ error: 'Has alcanzado el límite de 5 contactos.' });
     }
     console.error(error);
     res.status(500).json({ error: 'Error interno' });
@@ -61,7 +67,14 @@ export const eliminarContactoController = async (req: Request, res: Response) =>
 
     await useCase.eliminarContacto(usuarioId, id);
     res.status(200).json({ message: 'Contacto eliminado' });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'CONTACTO_NOT_FOUND') {
+      return res.status(404).json({ error: 'Contacto no encontrado' });
+    }
+    if (error.message === 'CONTACTO_NOT_OWNED') {
+      return res.status(403).json({ error: 'No tienes permiso para eliminar este contacto' });
+    }
+    console.error(error);
     res.status(500).json({ error: 'Error interno' });
   }
 };

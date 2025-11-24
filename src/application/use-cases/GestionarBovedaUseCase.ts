@@ -25,7 +25,7 @@ export class GestionarBovedaUseCase {
       datos.usuarioCuenta,
       passwordCifrada,
       datos.notas || '',
-      (datos.categoria as CategoriaActivo) || 'OTRO'
+      datos.categoria || 'OTRO'
     );
 
     boveda.agregarActivo(nuevoActivo);
