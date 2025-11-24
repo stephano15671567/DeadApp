@@ -30,11 +30,27 @@ export class GestionarVidaUseCase {
 
   // 1. DAR SEÑAL DE VIDA (Ping)
   async darSenalDeVida(usuarioId: string, { frecuencia }: DarSenalVidaDto): Promise<ChequeoVida> {
-    const chequeo = await this.chequeoVidaRepo.buscarPorUsuarioId(usuarioId); 
-    // ... (resto del código del ping) ...
+    let chequeo = await this.chequeoVidaRepo.buscarPorUsuarioId(usuarioId); 
+    
     if (!chequeo) {
-      throw new Error('Chequeo de vida no encontrado');
+      // Crear nuevo chequeo de vida si no existe
+      const frecuenciaDefault = frecuencia || '3_MESES' as FrecuenciaChequeo;
+      chequeo = new ChequeoVida(
+        new Uuid(),
+        usuarioId,
+        frecuenciaDefault,
+        new Date(),
+        EstadoChequeo.PENDIENTE
+      );
+    } else {
+      // Actualizar señal de vida
+      chequeo.darSenal();
+      if (frecuencia) {
+        chequeo.frecuencia = frecuencia;
+      }
     }
+    
+    await this.chequeoVidaRepo.guardar(chequeo);
     return chequeo;
   }
 
