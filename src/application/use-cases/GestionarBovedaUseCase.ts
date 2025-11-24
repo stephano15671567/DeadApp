@@ -32,17 +32,39 @@ export class GestionarBovedaUseCase {
     await this.bovedaRepository.guardar(boveda);
   }
 
-  // ... (otros m�todos que no causan el crash) ...
+  // ... (otros métodos que no causan el crash) ...
   async obtenerActivos(usuarioId: string): Promise<ActivoDigital[]> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) return [];
     return boveda.activos;
   }
 
+  async obtenerActivo(usuarioId: string, activoId: string): Promise<ActivoDigital | null> {
+    const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
+    if (!boveda) return null;
+    const activo = boveda.activos.find(a => a.id.value === activoId);
+    return activo || null;
+  }
+
   async eliminarActivo(usuarioId: string, activoId: string): Promise<void> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) throw new Error('BOVEDA_NOT_FOUND');
     boveda.eliminarActivo(activoId);
+    await this.bovedaRepository.guardar(boveda);
+  }
+
+  async actualizarActivo(usuarioId: string, activoId: string, datos: Partial<AgregarActivoDto>): Promise<void> {
+    const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
+    if (!boveda) throw new Error('BOVEDA_NOT_FOUND');
+    
+    const actualizacion: any = {};
+    if (datos.plataforma !== undefined) actualizacion.plataforma = datos.plataforma;
+    if (datos.usuarioCuenta !== undefined) actualizacion.usuarioCuenta = datos.usuarioCuenta;
+    if (datos.password !== undefined) actualizacion.passwordCifrada = `[CIFRADO]_${datos.password}`;
+    if (datos.notas !== undefined) actualizacion.notas = datos.notas;
+    if (datos.categoria !== undefined) actualizacion.categoria = datos.categoria as CategoriaActivo;
+    
+    boveda.actualizarActivo(activoId, actualizacion);
     await this.bovedaRepository.guardar(boveda);
   }
 }

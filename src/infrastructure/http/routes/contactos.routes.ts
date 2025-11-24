@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { 
   crearContactoController, 
-  listarContactosController, 
-  eliminarContactoController 
+  listarContactosController,
+  obtenerContactoController,
+  eliminarContactoController,
+  actualizarContactoController
 } from '../controllers/ContactoController';
 import { validateJwt } from '../middleware/auth.middleware';
 
@@ -12,6 +14,8 @@ router.use(validateJwt); // Proteger todas las rutas
 
 router.post('/', crearContactoController);
 router.get('/', listarContactosController);
+router.get('/:id', obtenerContactoController);
+router.put('/:id', actualizarContactoController);
 router.delete('/:id', eliminarContactoController);
 
 export { router as contactosRoutes };

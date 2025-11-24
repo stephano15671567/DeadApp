@@ -6,13 +6,16 @@ import { Uuid } from '../../../domain/value-objects/Uuid';
 export class MongoContactoAdapter implements ContactoRepository {
   
   async guardar(contacto: ContactoClave): Promise<void> {
-    await ContactoModel.create({
-      _id: contacto.id.value,
-      usuarioId: contacto.usuarioId,
-      nombre: contacto.nombre,
-      email: contacto.email,
-      telefono: contacto.telefono
-    });
+    await ContactoModel.findOneAndUpdate(
+      { _id: contacto.id.value },
+      {
+        usuarioId: contacto.usuarioId,
+        nombre: contacto.nombre,
+        email: contacto.email,
+        telefono: contacto.telefono
+      },
+      { upsert: true, new: true }
+    );
   }
 
   async listarPorUsuarioId(usuarioId: string): Promise<ContactoClave[]> {
@@ -26,6 +29,12 @@ export class MongoContactoAdapter implements ContactoRepository {
 
   async contarPorUsuarioId(usuarioId: string): Promise<number> {
     return await ContactoModel.countDocuments({ usuarioId });
+  }
+
+  async buscarPorId(id: string): Promise<ContactoClave | null> {
+    const doc = await ContactoModel.findById(id);
+    if (!doc) return null;
+    return this.mapToEntity(doc);
   }
 
   private mapToEntity(doc: IContactoDoc): ContactoClave {

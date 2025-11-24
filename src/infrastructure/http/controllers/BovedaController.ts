@@ -13,7 +13,7 @@ const getUserId = (req: Request): string | undefined => {
 export const agregarActivoController = async (req: Request, res: Response) => {
   try {
     const usuarioId = getUserId(req);
-    if (!usuarioId) return res.status(401).json({ error: 'Token inv·lido: No se encontrÛ ID de usuario' });
+    if (!usuarioId) return res.status(401).json({ error: 'Token invÔøΩlido: No se encontrÔøΩ ID de usuario' });
 
     await gestionarBovedaUseCase.agregarActivo(usuarioId, req.body);
     res.status(201).json({ message: 'Activo digital guardado exitosamente' });
@@ -28,7 +28,7 @@ export const agregarActivoController = async (req: Request, res: Response) => {
 export const obtenerActivosController = async (req: Request, res: Response) => {
   try {
     const usuarioId = getUserId(req);
-    if (!usuarioId) return res.status(401).json({ error: 'Token inv·lido: No se encontrÛ ID de usuario' });
+    if (!usuarioId) return res.status(401).json({ error: 'Token inv√°lido: No se encontr√≥ ID de usuario' });
 
     const activos = await gestionarBovedaUseCase.obtenerActivos(usuarioId);
     res.status(200).json(activos);
@@ -39,13 +39,35 @@ export const obtenerActivosController = async (req: Request, res: Response) => {
   }
 };
 
+// 2b. LEER UN ACTIVO
+export const obtenerActivoController = async (req: Request, res: Response) => {
+  try {
+    const usuarioId = getUserId(req);
+    const activoId = req.params.id;
+
+    if (!usuarioId) return res.status(401).json({ error: 'Token inv√°lido: No se encontr√≥ ID de usuario' });
+    if (!activoId) return res.status(400).json({ error: 'ID del activo es requerido' });
+
+    const activo = await gestionarBovedaUseCase.obtenerActivo(usuarioId, activoId);
+    if (!activo) {
+      return res.status(404).json({ error: 'Activo no encontrado' });
+    }
+    
+    res.status(200).json(activo);
+
+  } catch (error) {
+    console.error('Error en obtenerActivo:', error);
+    res.status(500).json({ error: 'Error interno al obtener activo' });
+  }
+};
+
 // 3. ELIMINAR ACTIVO
 export const eliminarActivoController = async (req: Request, res: Response) => {
   try {
     const usuarioId = getUserId(req);
     const activoId = req.params.id; 
 
-    if (!usuarioId) return res.status(401).json({ error: 'Token inv·lido: No se encontrÛ ID de usuario' });
+    if (!usuarioId) return res.status(401).json({ error: 'Token inv√°lido: No se encontr√≥ ID de usuario' });
     if (!activoId) return res.status(400).json({ error: 'ID del activo es requerido' });
 
     await gestionarBovedaUseCase.eliminarActivo(usuarioId, activoId);
@@ -53,9 +75,33 @@ export const eliminarActivoController = async (req: Request, res: Response) => {
 
   } catch (error: any) {
     if (error.message === 'BOVEDA_NOT_FOUND') {
-      return res.status(404).json({ error: 'BÛveda no encontrada para este usuario' });
+      return res.status(404).json({ error: 'B√≥veda no encontrada para este usuario' });
     }
     console.error('Error en eliminarActivo:', error);
     res.status(500).json({ error: 'Error interno al eliminar el activo' });
+  }
+};
+
+// 4. ACTUALIZAR ACTIVO
+export const actualizarActivoController = async (req: Request, res: Response) => {
+  try {
+    const usuarioId = getUserId(req);
+    const activoId = req.params.id;
+
+    if (!usuarioId) return res.status(401).json({ error: 'Token inv√°lido: No se encontr√≥ ID de usuario' });
+    if (!activoId) return res.status(400).json({ error: 'ID del activo es requerido' });
+
+    await gestionarBovedaUseCase.actualizarActivo(usuarioId, activoId, req.body);
+    res.status(200).json({ message: 'Activo actualizado correctamente' });
+
+  } catch (error: any) {
+    if (error.message === 'BOVEDA_NOT_FOUND') {
+      return res.status(404).json({ error: 'B√≥veda no encontrada para este usuario' });
+    }
+    if (error.message === 'ACTIVO_NOT_FOUND') {
+      return res.status(404).json({ error: 'Activo no encontrado' });
+    }
+    console.error('Error en actualizarActivo:', error);
+    res.status(500).json({ error: 'Error interno al actualizar el activo' });
   }
 };

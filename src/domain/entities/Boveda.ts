@@ -34,6 +34,23 @@ export class Boveda {
     this.fechaActualizacion = new Date();
   }
 
+  actualizarActivo(activoId: string, actualizacion: Partial<ActivoDigital>): void {
+    const activo = this._activos.find(a => a.id.value === activoId);
+    if (!activo) {
+      throw new Error('ACTIVO_NOT_FOUND');
+    }
+    
+    // Actualizar solo los campos permitidos (no readonly)
+    if (actualizacion.plataforma !== undefined) activo.plataforma = actualizacion.plataforma;
+    if (actualizacion.usuarioCuenta !== undefined) activo.usuarioCuenta = actualizacion.usuarioCuenta;
+    if (actualizacion.passwordCifrada !== undefined) activo.passwordCifrada = actualizacion.passwordCifrada;
+    if (actualizacion.notas !== undefined) activo.notas = actualizacion.notas;
+    if (actualizacion.categoria !== undefined) activo.categoria = actualizacion.categoria;
+    if (actualizacion.gestionado !== undefined) activo.gestionado = actualizacion.gestionado;
+    
+    this.fechaActualizacion = new Date();
+  }
+
   // M�todo est�tico para simplificar la creaci�n inicial
   static createNew(usuarioId: string): Boveda {
     const ahora = new Date();

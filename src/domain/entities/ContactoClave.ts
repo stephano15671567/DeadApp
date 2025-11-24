@@ -8,4 +8,10 @@ export class ContactoClave {
     public email: string,
     public telefono: string
   ) {}
+
+  actualizar(datos: { nombre?: string; email?: string; telefono?: string }): void {
+    if (datos.nombre !== undefined) this.nombre = datos.nombre;
+    if (datos.email !== undefined) this.email = datos.email;
+    if (datos.telefono !== undefined) this.telefono = datos.telefono;
+  }
 }
