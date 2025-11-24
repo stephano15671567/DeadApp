@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { EstadoBoveda } from '../../../domain/entities/Boveda'; // <--- IMPORTAR ENUM
 
 export interface IBovedaDoc extends Document {
-  _id: string;
+  _id: any;
   usuarioId: string;
   nombre: string;
   descripcion: string;
@@ -10,6 +10,16 @@ export interface IBovedaDoc extends Document {
   fechaCreacion: Date;
   fechaActualizacion: Date;
   estado: EstadoBoveda; // <--- NUEVO CAMPO
+  activos?: {
+    _id: string;
+    plataforma: string;
+    usuarioCuenta: string;
+    passwordCifrada: string;
+    notas?: string;
+    categoria?: string;
+    gestionado?: boolean;
+    fechaGestionado?: Date;
+  }[];
 }
 
 const BovedaSchema: Schema = new Schema({
@@ -20,7 +30,19 @@ const BovedaSchema: Schema = new Schema({
   clave: { type: String, required: true },
   fechaCreacion: { type: Date, required: true },
   fechaActualizacion: { type: Date, required: true },
-  estado: { type: String, required: true, default: EstadoBoveda.ACTIVA }, // <--- NUEVA DEFINICIÓN
+  estado: { type: String, required: true, default: EstadoBoveda.ACTIVA }, // <--- NUEVA DEFINICIï¿½N
+  activos: [
+    {
+      _id: { type: String, required: true },
+      plataforma: { type: String, required: true },
+      usuarioCuenta: { type: String, required: true },
+      passwordCifrada: { type: String, required: true },
+      notas: { type: String, required: false },
+      categoria: { type: String, required: false },
+      gestionado: { type: Boolean, required: false, default: false },
+      fechaGestionado: { type: Date, required: false }
+    }
+  ],
 });
 
 export const BovedaModel = mongoose.model<IBovedaDoc>('Boveda', BovedaSchema);

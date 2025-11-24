@@ -16,6 +16,12 @@ export class ChequeoVida {
     public estado: EstadoChequeo = EstadoChequeo.PENDIENTE
   ) {}
 
+  // Fecha calculada del siguiente chequeo según la estrategia de frecuencia
+  get siguienteChequeo(): Date {
+    const estrategia = FrecuenciaFactory.obtenerEstrategia(this.frecuencia);
+    return estrategia.calcularFechaLimite(this.ultimaSenal);
+  }
+
   // Lógica de Dominio puro: ¿Estoy vencido?
   verificarEstado(): void {
     const estrategia = FrecuenciaFactory.obtenerEstrategia(this.frecuencia);

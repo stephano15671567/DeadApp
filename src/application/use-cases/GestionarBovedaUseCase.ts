@@ -3,25 +3,27 @@ import { AgregarActivoDto } from '../dtos/AgregarActivoDto';
 import { Boveda } from '../../domain/entities/Boveda';
 import { ActivoDigital, CategoriaActivo } from '../../domain/entities/ActivoDigital';
 import { Uuid } from '../../domain/value-objects/Uuid';
+import { CryptoService } from '../../lib/cryptoService'; 
+import { AuditModel } from '../../infrastructure/database/schemas/AuditSchema';
+
+const cryptoService = new CryptoService(); 
 
 export class GestionarBovedaUseCase {
   constructor(private readonly bovedaRepository: BovedaRepository) {}
 
-  // 1. CREAR (Ahora usa el método estático para evitar fallos de constructor)
+  // 1. AGREGAR ACTIVO (Cifrado)
   async agregarActivo(usuarioId: string, datos: AgregarActivoDto): Promise<void> {
     let boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
 
     if (!boveda) {
-      // FIX CRÍTICO: Usar el método estático para crear la Bóveda con defaults
       boveda = Boveda.createNew(usuarioId); 
     }
-    // ... (El resto del código de creación de Activo Digital) ...
-    
-    const passwordCifrada = `[CIFRADO]_${datos.password}`; 
+
+    // ?? CRï¿½TICO: Cifrado AES-256
+    const passwordCifrada = cryptoService.encrypt(datos.password); 
 
     const nuevoActivo = new ActivoDigital(
       new Uuid(),
-      usuarioId,
       datos.plataforma,
       datos.usuarioCuenta,
       passwordCifrada,
@@ -31,19 +33,66 @@ export class GestionarBovedaUseCase {
 
     boveda.agregarActivo(nuevoActivo);
     await this.bovedaRepository.guardar(boveda);
+
+    // Registrar auditorÃ­a
+    try {
+      await AuditModel.create({
+        _id: new Uuid().value,
+        usuarioId,
+        accion: 'AGREGAR_ACTIVO',
+        tipoEntidad: 'ACTIVO',
+        entidadId: nuevoActivo.id.value,
+        detalles: { plataforma: datos.plataforma, usuarioCuenta: datos.usuarioCuenta },
+        timestamp: new Date()
+      });
+    } catch (err) {
+      console.warn('No se pudo registrar la auditorÃ­a de agregar activo:', err);
+    }
   }
 
-  // ... (otros métodos que no causan el crash) ...
+  // 2. OBTENER ACTIVOS (Descifrado temporal para verificaciï¿½n)
   async obtenerActivos(usuarioId: string): Promise<ActivoDigital[]> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) return [];
-    return boveda.activos;
+    
+    const activosDescifrados = boveda.activos.map(activo => {
+      try {
+        const passwordDescifrada = cryptoService.decrypt(activo.passwordCifrada);
+        
+        return {
+          ...activo,
+          passwordCifrada: passwordDescifrada 
+        } as ActivoDigital;
+      } catch (e) {
+        console.warn("Error descifrando activo. Usando texto cifrado original:", activo.id.value);
+        return {
+             ...activo,
+             passwordCifrada: 'Error de Clave / Dato Corrupto'
+        } as ActivoDigital;
+      }
+    });
+    
+    return activosDescifrados;
   }
 
+  // 3. ELIMINAR ACTIVO (Mantenido)
   async eliminarActivo(usuarioId: string, activoId: string): Promise<void> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) throw new Error('BOVEDA_NOT_FOUND');
     boveda.eliminarActivo(activoId);
     await this.bovedaRepository.guardar(boveda);
+    try {
+      await AuditModel.create({
+        _id: new Uuid().value,
+        usuarioId,
+        accion: 'ELIMINAR_ACTIVO',
+        tipoEntidad: 'ACTIVO',
+        entidadId: activoId,
+        detalles: {},
+        timestamp: new Date()
+      });
+    } catch (err) {
+      console.warn('No se pudo registrar la auditorÃ­a de eliminar activo:', err);
+    }
   }
 }

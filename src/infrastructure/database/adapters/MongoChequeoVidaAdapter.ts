@@ -6,7 +6,7 @@ import { Uuid } from '../../../domain/value-objects/Uuid';
 
 export class MongoChequeoVidaAdapter implements ChequeoVidaRepository {
   
-  // 1. Método Guardar (Persistencia)
+  // 1. Mï¿½todo Guardar (Persistencia)
   async guardar(chequeo: ChequeoVida): Promise<void> {
     await ChequeoVidaModel.findOneAndUpdate(
       { _id: chequeo.id.value },
@@ -14,21 +14,21 @@ export class MongoChequeoVidaAdapter implements ChequeoVidaRepository {
         usuarioId: chequeo.usuarioId,
         frecuencia: chequeo.frecuencia,
         ultimaSenal: chequeo.ultimaSenal,
-        siguienteChequeo: chequeo.siguienteChequeo, 
+        siguienteChequeo: chequeo.siguienteChequeo,
         estado: chequeo.estado
       },
       { upsert: true, new: true }
     );
   }
 
-  // 2. Método Buscar por ID (Usado en Ping)
+  // 2. Mï¿½todo Buscar por ID (Usado en Ping)
   async buscarPorUsuarioId(usuarioId: string): Promise<ChequeoVida | null> {
     const doc = await ChequeoVidaModel.findOne({ usuarioId });
     if (!doc) return null;
     return this.mapToEntity(doc);
   }
 
-  // ?? 3. MÉTODO CRÍTICO PARA EL CRON JOB (Fix del TypeError)
+  // ?? 3. Mï¿½TODO CRï¿½TICO PARA EL CRON JOB (Fix del TypeError)
   async buscarTodos(): Promise<ChequeoVida[]> {
     // Retorna todos los documentos (sin filtro, tal como el Cron lo necesita)
     const docs = await ChequeoVidaModel.find({}); 
@@ -41,8 +41,7 @@ export class MongoChequeoVidaAdapter implements ChequeoVidaRepository {
       new Uuid(doc._id),
       doc.usuarioId,
       doc.frecuencia as FrecuenciaChequeo,
-      doc.ultimaSenal,
-      doc.siguienteChequeo,
+      doc.ultimaSenal ? new Date(doc.ultimaSenal) : new Date(),
       doc.estado as EstadoChequeo
     );
   }

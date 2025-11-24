@@ -11,7 +11,7 @@ const bovedaRepo = new MongoBovedaAdapter();
 const contactoRepo = new MongoContactoAdapter();
 const emailService = new MockEmailAdapter();
 
-// Caso de Uso (Inyección de Dependencias)
+// Caso de Uso (Inyecciï¿½n de Dependencias)
 const gestionarVidaUseCase = new GestionarVidaUseCase(
     chequeoVidaRepo, 
     bovedaRepo, // Boveda Repository (Nuevo)
@@ -20,7 +20,7 @@ const gestionarVidaUseCase = new GestionarVidaUseCase(
 );
 
 export const initLifeCheckJob = () => {
-    // Definición del Cron Job (corre cada minuto para depuración)
+    // Definiciï¿½n del Cron Job (corre cada minuto para depuraciï¿½n)
     const lifeCheckJob = cron.schedule('* * * * *', async () => {
         console.log('? CronJob disparado: Verificando vida de usuarios...');
         try {
@@ -28,9 +28,6 @@ export const initLifeCheckJob = () => {
         } catch (error) {
             console.error('? Error en CronJob:', error);
         }
-    }, {
-        scheduled: true, 
-        timezone: "America/Santiago" 
     });
 
     console.log('?? Job de Chequeo de Vida programado (Corre cada minuto para pruebas).');
