@@ -1,5 +1,5 @@
 import { BovedaRepository } from '../../domain/ports/out/BovedaRepository';
-import { AgregarActivoDto } from '../dtos/AgregarActivoDto';
+import { AgregarActivoDto, ActualizarActivoDto } from '../dtos/AgregarActivoDto';
 import { Boveda } from '../../domain/entities/Boveda';
 import { ActivoDigital, CategoriaActivo } from '../../domain/entities/ActivoDigital';
 import { Uuid } from '../../domain/value-objects/Uuid';
@@ -53,16 +53,23 @@ export class GestionarBovedaUseCase {
     await this.bovedaRepository.guardar(boveda);
   }
 
-  async actualizarActivo(usuarioId: string, activoId: string, datos: Partial<AgregarActivoDto>): Promise<void> {
+  async actualizarActivo(usuarioId: string, activoId: string, datos: ActualizarActivoDto): Promise<void> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) throw new Error('BOVEDA_NOT_FOUND');
     
-    const actualizacion: any = {};
+    const actualizacion: {
+      plataforma?: string;
+      usuarioCuenta?: string;
+      passwordCifrada?: string;
+      notas?: string;
+      categoria?: CategoriaActivo;
+    } = {};
+    
     if (datos.plataforma !== undefined) actualizacion.plataforma = datos.plataforma;
     if (datos.usuarioCuenta !== undefined) actualizacion.usuarioCuenta = datos.usuarioCuenta;
     if (datos.password !== undefined) actualizacion.passwordCifrada = `[CIFRADO]_${datos.password}`;
     if (datos.notas !== undefined) actualizacion.notas = datos.notas;
-    if (datos.categoria !== undefined) actualizacion.categoria = datos.categoria as CategoriaActivo;
+    if (datos.categoria !== undefined) actualizacion.categoria = datos.categoria;
     
     boveda.actualizarActivo(activoId, actualizacion);
     await this.bovedaRepository.guardar(boveda);

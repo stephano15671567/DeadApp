@@ -1,5 +1,5 @@
 import { Uuid } from '../value-objects/Uuid';
-import { ActivoDigital } from './ActivoDigital'; // Asumimos este import
+import { ActivoDigital, CategoriaActivo } from './ActivoDigital'; // Asumimos este import
 
 export enum EstadoBoveda {
   ACTIVA = 'ACTIVA',
@@ -34,7 +34,13 @@ export class Boveda {
     this.fechaActualizacion = new Date();
   }
 
-  actualizarActivo(activoId: string, actualizacion: Partial<ActivoDigital>): void {
+  actualizarActivo(activoId: string, actualizacion: {
+    plataforma?: string;
+    usuarioCuenta?: string;
+    passwordCifrada?: string;
+    notas?: string;
+    categoria?: CategoriaActivo;
+  }): void {
     const activo = this._activos.find(a => a.id.value === activoId);
     if (!activo) {
       throw new Error('ACTIVO_NOT_FOUND');
@@ -46,7 +52,6 @@ export class Boveda {
     if (actualizacion.passwordCifrada !== undefined) activo.passwordCifrada = actualizacion.passwordCifrada;
     if (actualizacion.notas !== undefined) activo.notas = actualizacion.notas;
     if (actualizacion.categoria !== undefined) activo.categoria = actualizacion.categoria;
-    if (actualizacion.gestionado !== undefined) activo.gestionado = actualizacion.gestionado;
     
     this.fechaActualizacion = new Date();
   }
