@@ -54,25 +54,26 @@ export class GestionarBovedaUseCase {
   async obtenerActivos(usuarioId: string): Promise<ActivoDigital[]> {
     const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
     if (!boveda) return [];
-    
-    const activosDescifrados = boveda.activos.map(activo => {
-      try {
-        const passwordDescifrada = cryptoService.decrypt(activo.passwordCifrada);
-        
-        return {
-          ...activo,
-          passwordCifrada: passwordDescifrada 
-        } as ActivoDigital;
-      } catch (e) {
-        console.warn("Error descifrando activo. Usando texto cifrado original:", activo.id.value);
-        return {
-             ...activo,
-             passwordCifrada: 'Error de Clave / Dato Corrupto'
-        } as ActivoDigital;
-      }
-    });
-    
-    return activosDescifrados;
+    // Do NOT decrypt passwords when returning the list of activos.
+    // Returning plaintext secrets in API responses is a security risk.
+    // The frontend should request a decrypted secret via a dedicated endpoint
+    // that enforces proper authorization and auditing.
+    return boveda.activos as ActivoDigital[];
+  }
+
+  // Obtener el secreto (password) descifrado de un activo concreto.
+  async obtenerSecretoActivo(usuarioId: string, activoId: string): Promise<string> {
+    const boveda = await this.bovedaRepository.buscarPorUsuarioId(usuarioId);
+    if (!boveda) throw new Error('BOVEDA_NOT_FOUND');
+
+    const activo = boveda.activos.find(a => a.id.value === activoId);
+    if (!activo) throw new Error('ACTIVO_NOT_FOUND');
+
+    try {
+      return cryptoService.decrypt(activo.passwordCifrada);
+    } catch (err) {
+      throw new Error('DECRYPT_ERROR');
+    }
   }
 
   // 3. ELIMINAR ACTIVO (Mantenido)
