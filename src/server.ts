@@ -8,6 +8,7 @@ import { vidaRoutes } from './infrastructure/http/routes/vida.routes'; // <--- N
 import { initLifeCheckJob } from './infrastructure/jobs/lifeCheckJob';   // <--- NUEVO
 import { contactosRoutes } from './infrastructure/http/routes/contactos.routes'
 import { activacionRoutes } from './infrastructure/http/routes/activacion.routes'
+import { statusRoutes } from './infrastructure/http/routes/status.routes';
 import { MongoBovedaAdapter } from './infrastructure/database/adapters/MongoBovedaAdapter';
 import { GestionarBovedaUseCase } from './application/use-cases/GestionarBovedaUseCase';
 
@@ -24,6 +25,7 @@ app.use('/api/boveda', bovedaRoutes);
 app.use('/api/vida', vidaRoutes); // <--- NUEVA RUTA
 app.use('/api/contactos', contactosRoutes);
 app.use('/api/activacion', activacionRoutes);
+app.use('/api/status', statusRoutes);
 
 async function main() {
   try {
