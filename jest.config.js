@@ -7,6 +7,8 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest'
   },
+  // Ensure global setup runs before tests (sets up temp directories for mongodb-memory-server)
+  globalSetup: '<rootDir>/jest.global-setup.js',
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.json'
