@@ -39,15 +39,20 @@ describe('Encryption rotation (integration, in-memory Mongo)', () => {
 
   afterAll(async () => {
     await mongoose.disconnect();
-    try {
-      await mongod.stop();
-    } catch (err) {
-      // En Windows algunos procesos internos pueden negarse a terminar (EPERM).
-      // Ignoramos el error para que la suite de tests no falle por limpieza.
-      // El proceso hijo será recogido al terminar el proceso principal.
-      // Logueamos para diagnóstico.
+    // On Windows some internal child processes may refuse to be killed (EPERM).
+    // To avoid noisy warnings and test failures we skip stopping the in-memory
+    // server on Windows. The child process will be cleaned up when the main
+    // process exits. On non-Windows platforms we attempt a normal stop.
+    if (process.platform === 'win32') {
       // eslint-disable-next-line no-console
-      console.warn('Advertencia: no se pudo detener mongodb-memory-server:', err);
+      console.warn('Running on Windows: skipping mongodb-memory-server.stop() to avoid EPERM issues.');
+    } else {
+      try {
+        await mongod.stop();
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('Advertencia: no se pudo detener mongodb-memory-server:', err);
+      }
     }
   });
 
