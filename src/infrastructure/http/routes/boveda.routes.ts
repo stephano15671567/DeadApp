@@ -1,16 +1,23 @@
 import { Router } from 'express';
 import { 
   agregarActivoController, 
-  obtenerActivosController, 
-  eliminarActivoController 
+  obtenerActivosController,
+  obtenerActivoController,
+  eliminarActivoController,
+  actualizarActivoController
 } from '../controllers/BovedaController';
-import { validateJwt } from '../middleware/auth.middleware';
+import { validateJwt, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Aplicamos el middleware (que ahora hace bypass y deja pasar)
-router.post('/activos', validateJwt, agregarActivoController);
-router.get('/activos', validateJwt, obtenerActivosController);
-router.delete('/activos/:id', validateJwt, eliminarActivoController);
+// Todas las rutas requieren un token válido
+router.use(validateJwt);
+
+// CREAR, LEER, ACTUALIZAR, ELIMINAR solo para el Titular del Legado
+router.post('/activos', requireRole('usuario_titular'), agregarActivoController);
+router.get('/activos', requireRole('usuario_titular'), obtenerActivosController);
+router.get('/activos/:id', requireRole('usuario_titular'), obtenerActivoController);
+router.put('/activos/:id', requireRole('usuario_titular'), actualizarActivoController);
+router.delete('/activos/:id', requireRole('usuario_titular'), eliminarActivoController);
 
 export { router as bovedaRoutes };

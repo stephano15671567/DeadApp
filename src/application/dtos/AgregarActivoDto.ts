@@ -7,3 +7,11 @@ export interface AgregarActivoDto {
   notas?: string;
   categoria?: CategoriaActivo;
 }
+
+export interface ActualizarActivoDto {
+  plataforma?: string;
+  usuarioCuenta?: string;
+  password?: string;
+  notas?: string;
+  categoria?: CategoriaActivo;
+}

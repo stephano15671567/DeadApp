@@ -1,12 +1,22 @@
 import { Uuid } from '../value-objects/Uuid';
-import { ActivoDigital } from './ActivoDigital';
+import { ActivoDigital, CategoriaActivo } from './ActivoDigital'; // Asumimos este import
+
+export enum EstadoBoveda {
+  ACTIVA = 'ACTIVA',
+  LIBERADA = 'LIBERADA',
+}
 
 export class Boveda {
   constructor(
     public readonly id: Uuid,
     public readonly usuarioId: string,
-    private _activos: ActivoDigital[] = [],
-    public fechaUltimoCambio: Date = new Date()
+    public nombre: string, 
+    public descripcion: string, 
+    public clave: string, 
+    public fechaCreacion: Date,
+    public fechaActualizacion: Date,
+    public estado: EstadoBoveda = EstadoBoveda.ACTIVA,
+    private _activos: ActivoDigital[] = [] // ?? FIX: Inicializar la lista como array vac�o
   ) {}
 
   get activos(): ActivoDigital[] {
@@ -14,17 +24,58 @@ export class Boveda {
   }
 
   agregarActivo(activo: ActivoDigital): void {
-    this._activos.push(activo);
-    this.actualizarFechaCambio();
+    // ?? FIX: Asegurar que _activos sea un array antes de hacer push (aunque ya lo inicializamos)
+    this._activos.push(activo); 
+    this.fechaActualizacion = new Date();
   }
 
-  // Lógica para eliminar un activo de la lista
   eliminarActivo(activoId: string): void {
     this._activos = this._activos.filter(a => a.id.value !== activoId);
-    this.actualizarFechaCambio();
+    this.fechaActualizacion = new Date();
   }
 
-  private actualizarFechaCambio(): void {
-    this.fechaUltimoCambio = new Date();
+  actualizarActivo(activoId: string, actualizacion: {
+    plataforma?: string;
+    usuarioCuenta?: string;
+    passwordCifrada?: string;
+    notas?: string;
+    categoria?: CategoriaActivo;
+  }): void {
+    const activo = this._activos.find(a => a.id.value === activoId);
+    if (!activo) {
+      throw new Error('ACTIVO_NOT_FOUND');
+    }
+    
+    // Actualizar solo los campos permitidos (no readonly)
+    if (actualizacion.plataforma !== undefined) activo.plataforma = actualizacion.plataforma;
+    if (actualizacion.usuarioCuenta !== undefined) activo.usuarioCuenta = actualizacion.usuarioCuenta;
+    if (actualizacion.passwordCifrada !== undefined) activo.passwordCifrada = actualizacion.passwordCifrada;
+    if (actualizacion.notas !== undefined) activo.notas = actualizacion.notas;
+    if (actualizacion.categoria !== undefined) activo.categoria = actualizacion.categoria;
+    
+    this.fechaActualizacion = new Date();
+  }
+
+  // M�todo est�tico para simplificar la creaci�n inicial
+  static createNew(usuarioId: string): Boveda {
+    const ahora = new Date();
+    return new Boveda(
+      new Uuid(),
+      usuarioId,
+      'B�veda Principal de Legado', 
+      'Contenedor de todos los activos digitales del usuario.', 
+      'CLAVE_MAESTRA_DEFAULT', 
+      ahora,
+      ahora,
+      EstadoBoveda.ACTIVA,
+      [] // ?? Pasar el array vac�o expl�citamente para la primera creaci�n
+    );
+  }
+
+  liberar(): void {
+    if (this.estado === EstadoBoveda.LIBERADA) {
+      throw new Error('La b�veda ya est� liberada.');
+    }
+    this.estado = EstadoBoveda.LIBERADA;
   }
 }

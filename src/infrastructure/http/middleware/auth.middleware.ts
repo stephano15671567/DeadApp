@@ -4,22 +4,23 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// 1. Validaci√≥n REAL de JWT contra Keycloak
+// 1. ValidaciÛn REAL de JWT contra Keycloak
 export const validateJwt = auth({
   issuerBaseURL: process.env.KEYCLOAK_ISSUER_URL,
   audience: process.env.KEYCLOAK_AUDIENCE, 
 });
 
-// 2. Middleware para verificar Roles (Opcional por ahora)
+// 2. Middleware para verificar Roles (Se usa en boveda.routes.ts)
 export const requireRole = (role: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const payload = (req as any).auth?.payload;
-    // Ajusta esta ruta seg√∫n los roles de tu token (realm_access.roles)
-    const roles = payload?.realm_access?.roles || [];
+    // CRÕTICO: Keycloak pone los roles aquÌ
+    const roles = payload?.realm_access?.roles || []; 
 
     if (roles.includes(role)) {
       next();
     } else {
+      // 403 Forbidden si no tiene el rol
       res.status(403).json({ message: `Acceso denegado: Se requiere el rol '${role}'` });
     }
   };
@@ -30,7 +31,7 @@ export const authErrorHandler = (err: any, req: Request, res: Response, next: Ne
   if (err instanceof InsufficientScopeError) {
     res.status(403).json({ error: 'Permisos insuficientes' });
   } else if (err.name === 'UnauthorizedError') {
-    res.status(401).json({ error: 'Token inv√°lido o no proporcionado' });
+    res.status(401).json({ error: 'Token inv·lido o no proporcionado' });
   } else {
     next(err);
   }
