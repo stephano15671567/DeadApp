@@ -25,3 +25,6 @@ Thumbs.db
 # --- Logs ---
 logs/
 *.log
+
+# Jest temp created by global-setup
+.jest_tmp/
