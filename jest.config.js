@@ -9,6 +9,8 @@ module.exports = {
   },
   // Ensure global setup runs before tests (sets up temp directories for mongodb-memory-server)
   globalSetup: '<rootDir>/jest.global-setup.js',
+  // Global teardown to ensure spawned mongod processes are terminated (useful on Windows)
+  globalTeardown: '<rootDir>/jest.global-teardown.js',
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.json'
