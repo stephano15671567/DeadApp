@@ -18,7 +18,8 @@ param(
   [switch]$InstallDependencies = $false,
   [int]$BackendPort = 3002,
   [string]$BackendPath = "$PSScriptRoot\..",
-  [string]$FrontendPath = "$PSScriptRoot\..\DEADFRONT\frontend",
+  # Compute repo root (two levels up from scripts folder) and default frontend path relative to repo root
+  [string]$FrontendPath = (Resolve-Path -Path (Join-Path $PSScriptRoot "..\..") 2>$null | ForEach-Object { Join-Path $_ 'DEADFRONT\frontend' })
   [string]$MongoContainerName = 'test-mongo'
 )
 
