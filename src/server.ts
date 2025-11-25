@@ -7,6 +7,7 @@ import { bovedaRoutes } from './infrastructure/http/routes/boveda.routes';
 import { vidaRoutes } from './infrastructure/http/routes/vida.routes'; // <--- NUEVO
 import { initLifeCheckJob } from './infrastructure/jobs/lifeCheckJob';   // <--- NUEVO
 import { contactosRoutes } from './infrastructure/http/routes/contactos.routes'
+import { activacionRoutes } from './infrastructure/http/routes/activacion.routes'
 import { MongoBovedaAdapter } from './infrastructure/database/adapters/MongoBovedaAdapter';
 import { GestionarBovedaUseCase } from './application/use-cases/GestionarBovedaUseCase';
 
@@ -27,6 +28,7 @@ app.get('/health', (req, res) => { res.status(200).json({ status: 'OK' }); });
 app.use('/api/boveda', bovedaRoutes);
 app.use('/api/vida', vidaRoutes); // <--- NUEVA RUTA
 app.use('/api/contactos', contactosRoutes);
+app.use('/api/activacion', activacionRoutes);
 
 // Dev-only helper endpoint to quickly test adding an activo and returning the boveda.
 const enableDev = process.env.ENABLE_DEV_ENDPOINTS === 'true';
