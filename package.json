@@ -5,6 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev:all": "powershell -ExecutionPolicy Bypass -File ./scripts/start-dev.ps1 -InstallDependencies",
     "rotate-encryption": "ts-node src/scripts/rotateEncryption.ts",
     "backup-bovedas": "ts-node src/scripts/backupBovedas.ts",
     "test": "jest --runInBand",
